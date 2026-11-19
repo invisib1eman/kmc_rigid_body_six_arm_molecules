@@ -10,6 +10,9 @@
 #include <vector>
 #include <string>
 #include <list>
+#include <algorithm>
+#include <limits>
+#include <stdexcept>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>

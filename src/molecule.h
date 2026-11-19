@@ -24,6 +24,7 @@ public:
     quarternion orientation;
     Molecule() //HARD CODE BASED ON VERTEX INFORMATION,unit length=1nm,arm length=1.1nm
     {
+        MOL_ID=-1;
         N_VER=6;
         nbonds=0;
         gID=0;

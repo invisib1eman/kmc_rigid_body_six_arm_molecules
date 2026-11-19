@@ -1,5 +1,8 @@
 //NANOROD: utils.cpp Utilities Functions (Revision Date: Oct 27, 2023)
 #include "utils.h"
+#include <algorithm>
+#include <limits>
+#include <stdexcept>
 //do not assume where the particle is (particle may have crossed the box twice or more)
 XYZ image(XYZ p, double L)//note that every time we calculate vectors or distances we need to image XYZ
 {
@@ -35,34 +38,9 @@ double min_d2(XYZ a, XYZ b, double L)
     
     return d.norm2();
 }
-XYZ real_vector(XYZ origin,double L)//after image,get the real vectors
+XYZ real_vector(XYZ origin,double L)//minimum-image displacement, including multiple box crossings
 {
-  XYZ real=origin;
-  if(origin.x>0.5*L)
-  {
-    real.x=origin.x-L;
-  }
-  if(origin.x<-0.5*L)
-  {
-    real.x=origin.x+L;
-  }
-  if(origin.y>0.5*L)
-  {
-    real.y=origin.y-L;
-  }
-  if(origin.y<-0.5*L)
-  {
-    real.y=origin.y+L;
-  }
-  if(origin.z>0.5*L)
-  {
-    real.z=origin.z-L;
-  }
-  if(origin.z<-0.5*L)
-  {
-    real.z=origin.z+L;
-  }
-  return real;
+  return image(origin,L);
 }
 
 XYZ RandomTranslate(XYZ old, double step,double u,double v)
@@ -139,36 +117,42 @@ XYZ cross_product(XYZ a,XYZ b)
 //calculate angle between two vectors
 double angle_vectors(XYZ a,XYZ b)
 {
-  return acos(inner_product(a,b)/(a.norm()*b.norm()));
+  double length_a=a.norm();
+  double length_b=b.norm();
+  if(!(length_a>0.0)||!(length_b>0.0)||!isfinite(length_a)||!isfinite(length_b))
+    return numeric_limits<double>::quiet_NaN();
+  double cosine=inner_product(a/length_a,b/length_b);
+  return acos(max(-1.0,min(1.0,cosine)));
 }
 double dihedral_vectors(XYZ a,XYZ b,XYZ c)
 {
-    return atan2(b.norm()*inner_product(a,cross_product(b,c))/(cross_product(a,b).norm()*cross_product(b,c).norm()),inner_product(cross_product(a,b),cross_product(b,c))/(cross_product(a,b).norm()*cross_product(b,c).norm()));
+    XYZ normal1=cross_product(a,b);
+    XYZ normal2=cross_product(b,c);
+    double length_b=b.norm();
+    double length_normal1=normal1.norm();
+    double length_normal2=normal2.norm();
+    if(!(length_b>0.0)||!(length_normal1>0.0)||!(length_normal2>0.0)
+       ||!isfinite(length_b)||!isfinite(length_normal1)||!isfinite(length_normal2))
+        return numeric_limits<double>::quiet_NaN();
+    // Cancel the common positive denominator, preserving the original sign convention.
+    return atan2(length_b*inner_product(a,normal2),inner_product(normal1,normal2));
 }
 int GridIndex_index(int i,int j,int k,int n)
 {
-  if(i>n-1)
-    i-=n;
-  else if(i<0)
-    i+=n;
-  if(j>n-1)
-    j-=n;
-  else if(j<0)
-    j+=n;
-  if(k>n-1)
-    k-=n;
-  else if(k<0)
-    k+=n;
+  i=(i%n+n)%n;
+  j=(j%n+n)%n;
+  k=(k%n+n)%n;
   return n*n*k+n*j+i;
 }
-int GridIndex_xyz(XYZ& p,int n,double dl,double L)
+int GridIndex_xyz(const XYZ& p,int n,double dl,double L)
 {
-  int i=int(floor((p.x+0.5*L)/dl));
-  int j=int(floor((p.y+0.5*L)/dl));
-  int k=int(floor((p.z+0.5*L)/dl));
-  return n*n*k+n*j+i;
-
+  XYZ wrapped=image(p,L);
+  int i=int(floor((wrapped.x+0.5*L)/dl));
+  int j=int(floor((wrapped.y+0.5*L)/dl));
+  int k=int(floor((wrapped.z+0.5*L)/dl));
+  return GridIndex_index(i,j,k,n);
 }
+
 void GridLoc(int& i,int& j,int& k,int n,int index)
 {
   i=index%n;
@@ -179,11 +163,11 @@ int neighborarm(int n)
 {
   return n+1-2*(n%2);
 }
-vector<Molecule> generate_unitcell(Molecule M1)
+vector<Molecule> generate_unitcell(Molecule)
 {
-
+  throw logic_error("generate_unitcell is not implemented");
 }
-vector<Molecule> generate_newunit(vector<Molecule> origin_cell,int latticeindex1,int latticeindex2,int latticeindex3)
+vector<Molecule> generate_newunit(vector<Molecule>,int,int,int)
 {
-  
+  throw logic_error("generate_newunit is not implemented");
 }

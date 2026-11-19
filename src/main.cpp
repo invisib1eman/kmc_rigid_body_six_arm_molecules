@@ -12,13 +12,21 @@ int main(int argc, char *argv[])
 	time(&start);
 	
     System sys;
+    try
+    {
     sys.ReadInput(argc,argv);
     sys.Create();
-    sys.WriteMol2(0);
 	
     MC mc;
     mc.S=sys;
     mc.Sweep();
+    }
+    catch (const exception& error)
+    {
+        cerr<<"Error: "<<error.what()<<endl;
+        if (sys.gsl_r) gsl_rng_free(sys.gsl_r);
+        return EXIT_FAILURE;
+    }
     
 	//Finalize Random number
 	gsl_rng_free(sys.gsl_r);

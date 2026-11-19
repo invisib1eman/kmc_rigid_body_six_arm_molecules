@@ -14,7 +14,6 @@ class MC
         System S;
         Energy E;
         double energy, time;
-        int nbr_g=27;//number of number grids
         //new vector for molecule
         vector<Molecule> Mnew;
         MC(){energy=0.0; time=0.0; }
@@ -31,7 +30,10 @@ class MC
         double bond_energy();
         double bond_freeze_freenerngy();
         double TotalEnergy();
-        double WriteEnergy(int timestep);
+        void WriteEnergy(int timestep);
+        bool IsContact(double attraction) const;
+        void RebuildContacts();
+        void UpdateContacts(int index, const vector<hbond>& contacts);
 };
 #endif
 
